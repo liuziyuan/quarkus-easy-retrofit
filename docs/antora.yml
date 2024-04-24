@@ -1,0 +1,5 @@
+name: quarkus-retrofit-client
+title: Retrofit Client
+version: dev
+nav:
+  - modules/ROOT/nav.adoc
