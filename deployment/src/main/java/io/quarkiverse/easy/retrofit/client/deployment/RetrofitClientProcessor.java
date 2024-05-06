@@ -7,11 +7,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import io.quarkus.arc.deployment.BeanContainerBuildItem;
-import io.quarkus.arc.deployment.BeanContainerListenerBuildItem;
-import io.quarkus.arc.runtime.BeanContainer;
-import io.quarkus.arc.runtime.BeanContainerListener;
-import jakarta.enterprise.event.Observes;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
@@ -20,6 +15,8 @@ import org.jboss.jandex.Type;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.deployment.BeanArchiveIndexBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -68,9 +65,13 @@ public final class RetrofitClientProcessor {
     }
 
     @BuildStep
+    @Record(RUNTIME_INIT)
     void registerRetrofitClient(
+            RetrofitRecorder recorder,
             BuildProducer<RetrofitResourceContextBuildItem> producer,
             EnableRetrofitBuildItem enableRetrofitBuildItem) {
+        ArcContainer container = Arc.container();
+        assert container != null;
         if (enableRetrofitBuildItem != null) {
             RetrofitAnnotationBean retrofitAnnotationBean = enableRetrofitBuildItem.getRetrofitAnnotationBean();
             RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();

@@ -3,7 +3,6 @@ package io.quarkiverse.easy.retrofit.client.runtime;
 import io.github.liuziyuan.retrofit.core.RetrofitBuilderExtension;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
-import io.quarkus.arc.Arc;
 
 public class RetrofitBuilderExtensionRegister {
 
