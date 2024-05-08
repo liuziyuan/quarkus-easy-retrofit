@@ -6,10 +6,8 @@ import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalC
 
 public class RetrofitBuilderExtensionRegister {
 
-    public RetrofitBuilderGlobalConfig getGlobalConfig() {
-        RetrofitBuilderGlobalConfigProperties properties = new RetrofitBuilderGlobalConfigProperties();
-        RetrofitBuilderExtension retrofitBuilderExtension = null;
-
+    public RetrofitBuilderGlobalConfig getGlobalConfig(RetrofitBuilderGlobalConfigProperties properties,
+            RetrofitBuilderExtension retrofitBuilderExtension) {
         return new RetrofitBuilderGlobalConfig(properties, retrofitBuilderExtension);
     }
 
