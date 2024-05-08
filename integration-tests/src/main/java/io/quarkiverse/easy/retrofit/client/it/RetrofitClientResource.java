@@ -34,6 +34,6 @@ public class RetrofitClientResource {
     @GET
     public String hello() {
         String[] basePackages = retrofitResourceContext.getBasePackages();
-        return basePackages.toString();
+        return String.join(",", basePackages);
     }
 }
