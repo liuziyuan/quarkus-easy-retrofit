@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import org.jboss.jandex.*;
 
 import io.github.liuziyuan.retrofit.core.RetrofitBuilderExtension;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
-import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
 import io.quarkus.arc.deployment.*;
 import io.quarkus.arc.processor.BeanInfo;
@@ -87,16 +88,29 @@ public final class RetrofitClientProcessor {
             RetrofitRecorder recorder,
             EnableRetrofitBuildItem enableRetrofitBuildItem,
             RetrofitBuilderExtensionBuildItem retrofitBuilderExtensionBuildItem,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
             RetrofitBuilderGlobalConfigProperties globalConfigProperties) throws ClassNotFoundException {
         if (enableRetrofitBuildItem != null) {
-            Class<?> retrofitBuilderExtensionClass = retrofitBuilderExtensionBuildItem.getRetrofitBuilderExtensionClass();
-            RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
-            RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
-                    null);
-            RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
-            RetrofitAnnotationBean retrofitAnnotationBean = enableRetrofitBuildItem.getRetrofitAnnotationBean();
-            RetrofitResourceContext context = retrofitResourceContextRegister.getContext(retrofitAnnotationBean,
-                    globalConfig, null);
+            Class<? extends RetrofitBuilderExtension> retrofitBuilderExtensionClass = (Class<? extends RetrofitBuilderExtension>) retrofitBuilderExtensionBuildItem
+                    .getRetrofitBuilderExtensionClass();
+            //            RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
+            //            RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
+            //                    null);
+            //            RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
+            //            RetrofitResourceContext context = retrofitResourceContextRegister.getContext(
+            //                    enableRetrofitBuildItem.getRetrofitAnnotationBean(),
+            //                    globalConfig, null);
+            //            String[] basePackages = context.getBasePackages();
+
+            SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
+                    .configure(RetrofitResourceContext.class)
+                    .setRuntimeInit()
+                    .scope(ApplicationScoped.class)
+                    .unremovable()
+                    .runtimeValue(recorder.createRetrofitResourceContext(
+                            enableRetrofitBuildItem.getRetrofitAnnotationBean(), globalConfigProperties,
+                            retrofitBuilderExtensionClass, null));
+            syntheticBeanBuildItemBuildProducer.produce(configurator.done());
         }
     }
 
