@@ -3,7 +3,7 @@ package io.quarkiverse.easy.retrofit.client.deployment;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 import io.quarkus.builder.item.SimpleBuildItem;
 
-public class RetrofitResourceContextBuildItem extends SimpleBuildItem {
+public final class RetrofitResourceContextBuildItem extends SimpleBuildItem {
 
     private final RetrofitResourceContext context;
 

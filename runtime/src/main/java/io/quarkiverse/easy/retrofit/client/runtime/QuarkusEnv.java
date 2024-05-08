@@ -14,8 +14,8 @@ public class QuarkusEnv implements Env {
 
     @Override
     public String resolveRequiredPlaceholders(String text) {
-        if (text.contains("${")) {
-            String input = text.replaceAll("\\$\\{.*?\\}", "");
+        if (text != null && text.contains("${")) {
+            String input = text.replaceAll("\\$\\{(.+?)\\}", "$1");
             return ConfigProvider.getConfig().getValue(input, String.class);
         } else {
             return text;

@@ -1,5 +1,7 @@
 package io.quarkiverse.easy.retrofit.client.runtime.global;
 
+import java.util.List;
+
 import io.github.liuziyuan.retrofit.core.RetrofitBuilderExtension;
 import io.github.liuziyuan.retrofit.core.builder.*;
 import io.github.liuziyuan.retrofit.core.util.BooleanUtil;
@@ -21,68 +23,108 @@ public class RetrofitBuilderGlobalConfig implements RetrofitBuilderExtension {
 
     @Override
     public boolean enable() {
-        if (properties.getEnable() != null) {
-            return BooleanUtil.transformToBoolean(properties.getEnable());
+        if (properties.enable.orElse(null) != null) {
+            return BooleanUtil.transformToBoolean(properties.enable.get());
         }
         return customConfig != null && customConfig.enable();
     }
 
     private boolean propertiesEnable() {
-        return BooleanUtil.transformToBoolean(properties.getEnable());
+        return BooleanUtil.transformToBoolean(properties.enable.orElse(null));
     }
 
     @Override
     public String globalBaseUrl() {
-        if (propertiesEnable() && properties.getBaseUrl() != null) {
-            return properties.getBaseUrl();
+        if (propertiesEnable() && properties.baseUrl.orElse(null) != null) {
+            return properties.baseUrl.get();
         }
         return customConfig == null ? null : customConfig.globalBaseUrl();
     }
 
     @Override
     public Class<? extends BaseCallAdapterFactoryBuilder>[] globalCallAdapterFactoryBuilderClazz() {
-        if (propertiesEnable() && properties.getCallAdapterFactoryBuilderClazz() != null) {
-            return properties.getCallAdapterFactoryBuilderClazz();
+        List<String> strings = properties.callAdapterFactoryBuilderClazz.orElse(null);
+        if (propertiesEnable() && strings != null) {
+            Class<? extends BaseCallAdapterFactoryBuilder>[] classList = new Class[strings.size()];
+            for (int i = 0; i < strings.size(); i++) {
+                try {
+                    classList[i] = (Class<? extends BaseCallAdapterFactoryBuilder>) Class.forName(strings.get(i));
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return classList;
         }
         return customConfig == null ? null : customConfig.globalCallAdapterFactoryBuilderClazz();
     }
 
     @Override
     public Class<? extends BaseConverterFactoryBuilder>[] globalConverterFactoryBuilderClazz() {
-        if (propertiesEnable() && properties.getConverterFactoryBuilderClazz() != null) {
-            return properties.getConverterFactoryBuilderClazz();
+        List<String> strings = properties.converterFactoryBuilderClazz.orElse(null);
+        if (propertiesEnable() && strings != null) {
+            Class<? extends BaseConverterFactoryBuilder>[] classList = new Class[strings.size()];
+            for (int i = 0; i < strings.size(); i++) {
+                try {
+                    classList[i] = (Class<? extends BaseConverterFactoryBuilder>) Class.forName(strings.get(i));
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return classList;
         }
         return customConfig == null ? null : customConfig.globalConverterFactoryBuilderClazz();
     }
 
     @Override
     public Class<? extends BaseOkHttpClientBuilder> globalOkHttpClientBuilderClazz() {
-        if (propertiesEnable() && properties.getOkHttpClientBuilderClazz() != null) {
-            return properties.getOkHttpClientBuilderClazz();
+        String string = properties.okHttpClientBuilderClazz.orElse(null);
+        if (propertiesEnable() && string != null) {
+            Class<? extends BaseOkHttpClientBuilder> clazz;
+            try {
+                clazz = (Class<? extends BaseOkHttpClientBuilder>) Class.forName(string);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            return clazz;
         }
         return customConfig == null ? null : customConfig.globalOkHttpClientBuilderClazz();
     }
 
     @Override
     public Class<? extends BaseCallBackExecutorBuilder> globalCallBackExecutorBuilderClazz() {
-        if (propertiesEnable() && properties.getCallBackExecutorBuilderClazz() != null) {
-            return properties.getCallBackExecutorBuilderClazz();
+        String string = properties.callBackExecutorBuilderClazz.orElse(null);
+        if (propertiesEnable() && string != null) {
+            Class<? extends BaseCallBackExecutorBuilder> clazz;
+            try {
+                clazz = (Class<? extends BaseCallBackExecutorBuilder>) Class.forName(string);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            return clazz;
         }
         return customConfig == null ? null : customConfig.globalCallBackExecutorBuilderClazz();
     }
 
     @Override
     public Class<? extends BaseCallFactoryBuilder> globalCallFactoryBuilderClazz() {
-        if (propertiesEnable() && properties.getCallFactoryBuilderClazz() != null) {
-            return properties.getCallFactoryBuilderClazz();
+        String string = properties.callFactoryBuilderClazz.orElse(null);
+        if (propertiesEnable() && string != null) {
+            Class<? extends BaseCallFactoryBuilder> clazz;
+            try {
+                clazz = (Class<? extends BaseCallFactoryBuilder>) Class.forName(string);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            return clazz;
         }
         return customConfig == null ? null : customConfig.globalCallFactoryBuilderClazz();
     }
 
     @Override
     public String globalValidateEagerly() {
-        if (propertiesEnable() && properties.getValidateEagerly() != null) {
-            return properties.getValidateEagerly();
+        String string = properties.validateEagerly.orElse(null);
+        if (propertiesEnable() && string != null) {
+            return string;
         }
         return customConfig == null ? null : customConfig.globalValidateEagerly();
     }

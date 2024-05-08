@@ -1,92 +1,65 @@
 package io.quarkiverse.easy.retrofit.client.runtime.global;
 
+import java.util.List;
+import java.util.Optional;
+
 import io.github.liuziyuan.retrofit.core.builder.*;
-import io.smallrye.config.ConfigMapping;
+import io.quarkus.runtime.annotations.ConfigItem;
+import io.quarkus.runtime.annotations.ConfigPhase;
+import io.quarkus.runtime.annotations.ConfigRoot;
 
 /**
  * Spring boot web配置文件中声明的全局配置
  */
-@ConfigMapping(prefix = "retrofit.global")
+@ConfigRoot(name = "retrofit.global", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public class RetrofitBuilderGlobalConfigProperties {
 
-    private String enable;
+    /**
+     * enable
+     */
+    @ConfigItem
+    public Optional<String> enable;
 
-    private String baseUrl;
+    /**
+     * baseUrl
+     */
+    @ConfigItem
+    public Optional<String> baseUrl;
 
-    private Class<? extends BaseCallAdapterFactoryBuilder>[] callAdapterFactoryBuilderClazz;
+    /**
+     * callAdapterFactoryBuilderClazz
+     */
+    @ConfigItem
+    public Optional<List<String>> callAdapterFactoryBuilderClazz;
 
-    private Class<? extends BaseConverterFactoryBuilder>[] converterFactoryBuilderClazz;
+    /**
+     * converterFactoryBuilderClazz
+     */
+    @ConfigItem
+    public Optional<List<String>> converterFactoryBuilderClazz;
 
-    private Class<? extends BaseOkHttpClientBuilder> okHttpClientBuilderClazz;
+    /**
+     * okHttpClientBuilderClazz
+     */
+    @ConfigItem
+    public Optional<String> okHttpClientBuilderClazz;
 
-    private Class<? extends BaseCallBackExecutorBuilder> callBackExecutorBuilderClazz;
+    /**
+     * callBackExecutorBuilderClazz
+     */
+    @ConfigItem
+    public Optional<String> callBackExecutorBuilderClazz;
 
-    private Class<? extends BaseCallFactoryBuilder> callFactoryBuilderClazz;
+    /**
+     * callFactoryBuilderClazz
+     */
+    @ConfigItem
+    public Optional<String> callFactoryBuilderClazz;
 
-    private String validateEagerly;
+    /**
+     * validateEagerly
+     */
+    @ConfigItem
+    public Optional<String> validateEagerly;
 
-    public String getEnable() {
-        return enable;
-    }
-
-    public void setEnable(String enable) {
-        this.enable = enable;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public Class<? extends BaseCallAdapterFactoryBuilder>[] getCallAdapterFactoryBuilderClazz() {
-        return callAdapterFactoryBuilderClazz;
-    }
-
-    public void setCallAdapterFactoryBuilderClazz(
-            Class<? extends BaseCallAdapterFactoryBuilder>[] callAdapterFactoryBuilderClazz) {
-        this.callAdapterFactoryBuilderClazz = callAdapterFactoryBuilderClazz;
-    }
-
-    public Class<? extends BaseConverterFactoryBuilder>[] getConverterFactoryBuilderClazz() {
-        return converterFactoryBuilderClazz;
-    }
-
-    public void setConverterFactoryBuilderClazz(Class<? extends BaseConverterFactoryBuilder>[] converterFactoryBuilderClazz) {
-        this.converterFactoryBuilderClazz = converterFactoryBuilderClazz;
-    }
-
-    public Class<? extends BaseOkHttpClientBuilder> getOkHttpClientBuilderClazz() {
-        return okHttpClientBuilderClazz;
-    }
-
-    public void setOkHttpClientBuilderClazz(Class<? extends BaseOkHttpClientBuilder> okHttpClientBuilderClazz) {
-        this.okHttpClientBuilderClazz = okHttpClientBuilderClazz;
-    }
-
-    public Class<? extends BaseCallBackExecutorBuilder> getCallBackExecutorBuilderClazz() {
-        return callBackExecutorBuilderClazz;
-    }
-
-    public void setCallBackExecutorBuilderClazz(Class<? extends BaseCallBackExecutorBuilder> callBackExecutorBuilderClazz) {
-        this.callBackExecutorBuilderClazz = callBackExecutorBuilderClazz;
-    }
-
-    public Class<? extends BaseCallFactoryBuilder> getCallFactoryBuilderClazz() {
-        return callFactoryBuilderClazz;
-    }
-
-    public void setCallFactoryBuilderClazz(Class<? extends BaseCallFactoryBuilder> callFactoryBuilderClazz) {
-        this.callFactoryBuilderClazz = callFactoryBuilderClazz;
-    }
-
-    public String getValidateEagerly() {
-        return validateEagerly;
-    }
-
-    public void setValidateEagerly(String validateEagerly) {
-        this.validateEagerly = validateEagerly;
-    }
 }

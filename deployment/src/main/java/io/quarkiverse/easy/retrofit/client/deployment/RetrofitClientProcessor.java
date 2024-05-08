@@ -15,9 +15,12 @@ import org.jboss.jandex.Type;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
+import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
 import io.quarkus.arc.deployment.BeanArchiveIndexBuildItem;
-import io.quarkus.arc.deployment.BeanDiscoveryFinishedBuildItem;
-import io.quarkus.arc.processor.BeanInfo;
+import io.quarkus.arc.deployment.BeanContainerBuildItem;
+import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
@@ -34,9 +37,18 @@ public final class RetrofitClientProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+    //    @BuildStep
+    //    void doSomethingWithNamedBeans(BeanDiscoveryFinishedBuildItem beanDiscovery,
+    //            BuildProducer<NamedBeansBuildItem> namedBeans) {
+    //        List<BeanInfo> beanInfos = beanDiscovery.beanStream().withName().stream().toList();
+    //        namedBeans.produce(new NamedBeansBuildItem(beanInfos));
+    //
+    //    }
+
     @BuildStep
     @Record(STATIC_INIT)
-    void scanRetrofitResource(RetrofitRecorder recorder, BeanArchiveIndexBuildItem beanArchiveIndex,
+    void scanRetrofitResource(RetrofitRecorder recorder,
+            BeanArchiveIndexBuildItem beanArchiveIndex,
             BuildProducer<EnableRetrofitBuildItem> producer) {
         IndexView indexView = beanArchiveIndex.getIndex();
 
@@ -64,23 +76,38 @@ public final class RetrofitClientProcessor {
         }
     }
 
+    //    @BuildStep
+    //    AdditionalBeanBuildItem registerRetrofitResourceContext(EnableRetrofitBuildItem enableRetrofitBuildItem) {
+    //        if (enableRetrofitBuildItem != null) {
+    //            RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
+    //            RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig();
+    //            RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
+    //            RetrofitAnnotationBean retrofitAnnotationBean = enableRetrofitBuildItem.getRetrofitAnnotationBean();
+    //            RetrofitResourceContext context = retrofitResourceContextRegister.getContext(retrofitAnnotationBean, globalConfig,
+    //                    null);
+    //            return null;
+    //        }
+    //        return null;
+    //    }
+
     @BuildStep
     @Record(RUNTIME_INIT)
     void registerRetrofitClient(
             RetrofitRecorder recorder,
-            BeanDiscoveryFinishedBuildItem beanDiscovery,
+            BeanContainerBuildItem beanContainer,
+            RetrofitBuilderGlobalConfigProperties globalConfigProperties,
+            //            BeanDiscoveryFinishedBuildItem beanDiscovery,
             BuildProducer<RetrofitResourceContextBuildItem> producer,
             EnableRetrofitBuildItem enableRetrofitBuildItem) {
-        Collection<BeanInfo> beans = beanDiscovery.getBeans();
-        int size = beans.size();
+        BeanContainer value = beanContainer.getValue();
+        ArcContainer container = Arc.container();
         if (enableRetrofitBuildItem != null) {
-            RetrofitAnnotationBean retrofitAnnotationBean = enableRetrofitBuildItem.getRetrofitAnnotationBean();
             RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
             RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig();
             RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
+            RetrofitAnnotationBean retrofitAnnotationBean = enableRetrofitBuildItem.getRetrofitAnnotationBean();
             RetrofitResourceContext context = retrofitResourceContextRegister.getContext(retrofitAnnotationBean, globalConfig,
                     null);
-
             producer.produce(new RetrofitResourceContextBuildItem(context));
         }
     }
