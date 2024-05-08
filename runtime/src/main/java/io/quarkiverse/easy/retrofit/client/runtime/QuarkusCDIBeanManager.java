@@ -7,6 +7,10 @@ public class QuarkusCDIBeanManager implements CDIBeanManager {
 
     @Override
     public <T> T getBean(Class<T> clazz) {
-        return Arc.container().instance(clazz).get();
+        try {
+            return Arc.container().instance(clazz).get();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
