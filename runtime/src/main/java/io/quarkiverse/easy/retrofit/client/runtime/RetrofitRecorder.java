@@ -10,16 +10,19 @@ import io.github.liuziyuan.retrofit.core.RetrofitInterceptorExtension;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 
 @Recorder
 public class RetrofitRecorder {
     public RuntimeValue<RetrofitResourceContext> createRetrofitResourceContext(RetrofitAnnotationBean retrofitAnnotationBean,
-            RetrofitBuilderGlobalConfigProperties globalConfigProperties,
-            Class<? extends RetrofitBuilderExtension> retrofitBuilderExtensionClass,
-            List<Class<? extends RetrofitInterceptorExtension>> retrofitInterceptorExtensionClasses) {
-        CDIBeanManager cdiBeanManager = new QuarkusCDIBeanManager();
+                                                                               RetrofitBuilderGlobalConfigProperties globalConfigProperties,
+                                                                               Class<? extends RetrofitBuilderExtension> retrofitBuilderExtensionClass,
+                                                                               List<Class<? extends RetrofitInterceptorExtension>> retrofitInterceptorExtensionClasses) {
+        ArcContainer container = Arc.container();
+        CDIBeanManager cdiBeanManager = new QuarkusCDIBeanManager(container);
         RetrofitBuilderExtension retrofitBuilderExtension = cdiBeanManager.getBean(retrofitBuilderExtensionClass);
         List<RetrofitInterceptorExtension> retrofitInterceptorExtensions = new ArrayList<>();
         for (Class<? extends RetrofitInterceptorExtension> retrofitInterceptorExtensionClass : retrofitInterceptorExtensionClasses) {
