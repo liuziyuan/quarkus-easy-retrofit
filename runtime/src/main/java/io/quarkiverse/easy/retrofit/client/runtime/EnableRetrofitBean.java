@@ -8,6 +8,10 @@ public class EnableRetrofitBean {
 
     private Class<?>[] basePackageClasses;
 
+    private String[] extensionPackages;
+
+    private Class<?>[] extensionPackageClasses;
+
     public String[] getValue() {
         return value;
     }
@@ -30,5 +34,21 @@ public class EnableRetrofitBean {
 
     public void setBasePackages(String[] basePackages) {
         this.basePackages = basePackages;
+    }
+
+    public String[] getExtensionPackages() {
+        return extensionPackages;
+    }
+
+    public void setExtensionPackages(String[] extensionPackages) {
+        this.extensionPackages = extensionPackages;
+    }
+
+    public Class<?>[] getExtensionPackageClasses() {
+        return extensionPackageClasses;
+    }
+
+    public void setExtensionPackageClasses(Class<?>[] extensionPackageClasses) {
+        this.extensionPackageClasses = extensionPackageClasses;
     }
 }

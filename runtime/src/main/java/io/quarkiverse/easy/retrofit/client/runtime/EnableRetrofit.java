@@ -32,4 +32,8 @@ public @interface EnableRetrofit {
      * @return basePackages
      */
     Class<?>[] basePackageClasses() default {};
+
+    String[] extensionPackages() default {};
+
+    Class<?>[] extensionPackageClasses() default {};
 }

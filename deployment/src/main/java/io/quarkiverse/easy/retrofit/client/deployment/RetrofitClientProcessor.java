@@ -1,13 +1,8 @@
 package io.quarkiverse.easy.retrofit.client.deployment;
 
-import static io.quarkus.deployment.annotations.ExecutionTime.RUNTIME_INIT;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -17,14 +12,16 @@ import org.jboss.logging.Logger;
 import io.github.liuziyuan.retrofit.core.RetrofitBuilderExtension;
 import io.github.liuziyuan.retrofit.core.RetrofitInterceptorExtension;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
+import io.github.liuziyuan.retrofit.core.RetrofitResourceScanner;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
+import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
 import io.quarkus.arc.deployment.*;
-import io.quarkus.arc.processor.BeanInfo;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.runtime.RuntimeValue;
 
 public final class RetrofitClientProcessor {
 
@@ -40,11 +37,12 @@ public final class RetrofitClientProcessor {
 
     @BuildStep
     @Record(STATIC_INIT)
-    void scanRetrofitResource(RetrofitRecorder recorder,
+    void registerRetrofitResource(RetrofitRecorder recorder,
             BeanArchiveIndexBuildItem beanArchiveIndex,
-            BuildProducer<EnableRetrofitBuildItem> producer) {
+            RetrofitBuilderGlobalConfigProperties globalConfigProperties,
+            BuildProducer<RetrofitResourceContextBuildItem> producer,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
         IndexView indexView = beanArchiveIndex.getIndex();
-
         Collection<AnnotationInstance> annotations = indexView.getAnnotations(ENABLE_RETROFIT_ANNOTATION);
         if (annotations.size() > 1) {
             throw new RuntimeException("@EnableRetrofit can only be used once");
@@ -52,96 +50,69 @@ public final class RetrofitClientProcessor {
         if (annotations.size() == 1) {
             AnnotationInstance annotationInstance = annotations.iterator().next();
 
-            EnableRetrofitBean enableRetrofit = new EnableRetrofitBean();
-            enableRetrofit.setValue(annotationInstance.value("value") == null ? new String[0]
+            EnableRetrofitBean enableRetrofitBean = new EnableRetrofitBean();
+            enableRetrofitBean.setValue(annotationInstance.value("value") == null ? new String[0]
                     : annotationInstance.value("value").asStringArray());
-            enableRetrofit.setBasePackages(annotationInstance.value("basePackages") == null ? new String[0]
+            enableRetrofitBean.setBasePackages(annotationInstance.value("basePackages") == null ? new String[0]
                     : annotationInstance.value("basePackages").asStringArray());
-            enableRetrofit.setBasePackageClasses(
+            enableRetrofitBean.setBasePackageClasses(
                     getBasePackageClasses(annotationInstance.value("basePackageClasses") == null ? new Type[0]
                             : annotationInstance.value("basePackageClasses").asClassArray()));
+            enableRetrofitBean.setExtensionPackages(annotationInstance.value("extensionPackages") == null ? new String[0]
+                    : annotationInstance.value("extensionPackages").asStringArray());
+            enableRetrofitBean.setExtensionPackageClasses(
+                    getBasePackageClasses(annotationInstance.value("extensionPackageClasses") == null ? new Type[0]
+                            : annotationInstance.value("extensionPackageClasses").asClassArray()));
+            // get retrofitAnnotationBean
             RetrofitAnnotationBeanRegister retrofitAnnotationBeanRegister = new RetrofitAnnotationBeanRegister();
-            Set<Class<?>> retrofitResource = retrofitAnnotationBeanRegister.scanRetrofitResource(enableRetrofit);
-            List<String> basePackages = retrofitAnnotationBeanRegister.getBasePackages(enableRetrofit);
+            Set<Class<?>> retrofitResource = retrofitAnnotationBeanRegister.scanRetrofitResource(enableRetrofitBean);
+            List<String> basePackages = retrofitAnnotationBeanRegister.getBasePackages(enableRetrofitBean);
             RetrofitAnnotationBean retrofitAnnotationBean = new RetrofitAnnotationBean(basePackages, retrofitResource);
-            EnableRetrofitBuildItem enableRetrofitBuildItem = new EnableRetrofitBuildItem(retrofitAnnotationBean);
-            producer.produce(enableRetrofitBuildItem);
-        }
-    }
+            // get retrofitExtension
+            RetrofitExtensionRegister retrofitExtensionRegister = new RetrofitExtensionRegister();
+            RetrofitResourceScanner.RetrofitExtension retrofitExtension = retrofitExtensionRegister
+                    .scanRetrofitExtension(enableRetrofitBean);
+            RetrofitBuilderExtension retrofitBuilderExtension = retrofitExtensionRegister
+                    .getRetrofitBuilderExtension(retrofitExtension.getRetrofitBuilderClasses());
+            List<RetrofitInterceptorExtension> retrofitInterceptorExtensions = retrofitExtensionRegister
+                    .getRetrofitInterceptorExtensions(retrofitExtension.getRetrofitInterceptorClasses());
+            // create RetrofitResourceContext
+            RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
+            RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
+                    retrofitBuilderExtension);
 
-    @BuildStep
-    void getRetrofitBuilderExtension(
-            BeanDiscoveryFinishedBuildItem beanDiscovery,
-            BuildProducer<RetrofitBuilderExtensionBuildItem> producer) throws ClassNotFoundException {
-        Collection<BeanInfo> beans = beanDiscovery.getBeans();
-        for (BeanInfo bean : beans) {
-            List<Type> collect = bean.getTypes().stream()
-                    .filter(type -> type.name().toString().equals(RetrofitBuilderExtension.class.getName()))
-                    .collect(Collectors.toList());
-            if (collect.size() > 1) {
-                LOG.warn("There are multiple " + RetrofitBuilderExtension.class.getSimpleName()
-                        + ", please check your configuration");
-            } else if (collect.size() == 1) {
-                String className = bean.getImplClazz().name().toString();
-                producer.produce(
-                        new RetrofitBuilderExtensionBuildItem(className));
-            }
-        }
-    }
-
-    @BuildStep
-    void getRetrofitInterceptorExtension(
-            BeanDiscoveryFinishedBuildItem beanDiscovery,
-            BuildProducer<RetrofitInterceptorExtensionBuildItem> producer) throws ClassNotFoundException {
-        Collection<BeanInfo> beans = beanDiscovery.getBeans();
-        List<String> classNames = new ArrayList<>();
-        for (BeanInfo bean : beans) {
-            List<Type> collect = bean.getTypes().stream()
-                    .filter(type -> type.name().toString().equals(RetrofitInterceptorExtension.class.getName()))
-                    .collect(Collectors.toList());
-            if (!collect.isEmpty()) {
-                String className = bean.getImplClazz().name().toString();
-                classNames.add(className);
-            }
-        }
-        producer.produce(
-                new RetrofitInterceptorExtensionBuildItem(classNames));
-    }
-
-    @BuildStep
-    @Record(RUNTIME_INIT)
-    void registerRetrofitResource(
-            RetrofitRecorder recorder,
-            EnableRetrofitBuildItem enableRetrofitBuildItem,
-            RetrofitBuilderExtensionBuildItem retrofitBuilderExtensionBuildItem,
-            RetrofitInterceptorExtensionBuildItem retrofitInterceptorExtensionBuildItem,
-            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer,
-            RetrofitBuilderGlobalConfigProperties globalConfigProperties) throws ClassNotFoundException {
-        if (enableRetrofitBuildItem != null) {
-            Class<? extends RetrofitBuilderExtension> retrofitBuilderExtensionClass = (Class<? extends RetrofitBuilderExtension>) retrofitBuilderExtensionBuildItem
-                    .getRetrofitBuilderExtensionClass();
-            List<Class<? extends RetrofitInterceptorExtension>> retrofitInterceptorExtensionClasses = retrofitInterceptorExtensionBuildItem
-                    .getRetrofitInterceptorExtensionClasses();
-            //            RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
-            //            RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
-            //                    null);
-            //            RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
-            //            RetrofitResourceContext context = retrofitResourceContextRegister.getContext(
-            //                    enableRetrofitBuildItem.getRetrofitAnnotationBean(),
-            //                    globalConfig, null);
-            //            String[] basePackages = context.getBasePackages();
-
+            RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
+            RetrofitResourceContext context = retrofitResourceContextRegister.getContext(retrofitAnnotationBean,
+                    globalConfig, retrofitInterceptorExtensions);
+            RuntimeValue<RetrofitResourceContext> runtimeValue = recorder.createRetrofitResourceContext(context);
             SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
                     .configure(RetrofitResourceContext.class)
-                    .setRuntimeInit()
                     .scope(ApplicationScoped.class)
                     .unremovable()
-                    .runtimeValue(recorder.createRetrofitResourceContext(
-                            enableRetrofitBuildItem.getRetrofitAnnotationBean(), globalConfigProperties,
-                            retrofitBuilderExtensionClass, retrofitInterceptorExtensionClasses));
+                    .supplier(recorder.getRetrofitResourceContextSupplier(runtimeValue));
+
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+
         }
     }
+
+    //    @BuildStep
+    //    @Record(RUNTIME_INIT)
+    //    void registerRetrofitResource(
+    //            RetrofitRecorder recorder,
+    //            RetrofitResourceContextBuildItem retrofitResourceContextBuildItem,
+    //            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
+    //        if (retrofitResourceContextBuildItem != null) {
+    //            //            RetrofitResourceContext context = retrofitResourceContextBuildItem.getContext();
+    //            //            SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
+    //            //                    .configure(RetrofitResourceContext.class)
+    //            //                    .setRuntimeInit()
+    //            //                    .scope(ApplicationScoped.class)
+    //            //                    .unremovable()
+    //            //                    .runtimeValue(recorder.createRetrofitResourceContext(context));
+    //            //            syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+    //        }
+    //    }
 
     private Class<?>[] getBasePackageClasses(Type[] type) {
         Class<?>[] classes = new Class[type.length];

@@ -17,23 +17,21 @@
 package io.quarkiverse.easy.retrofit.client.it;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-
-import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 
 @Path("/retrofit-client")
 @ApplicationScoped
 public class RetrofitClientResource {
     // add some rest methods here
-
-    @Inject
-    RetrofitResourceContext retrofitResourceContext;
+    //
+    //    @Inject
+    //    RetrofitResourceContext retrofitResourceContext;
 
     @GET
     public String hello() {
-        String[] basePackages = retrofitResourceContext.getBasePackages();
-        return String.join(",", basePackages);
+        //        String[] basePackages = retrofitResourceContext.getBasePackages();
+        //        return String.join(",", basePackages);
+        return "Hello retrofit-client";
     }
 }

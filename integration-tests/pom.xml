@@ -21,6 +21,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-reactive</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.liuziyuan.retrofit.quarkus.extension</groupId>
+            <artifactId>extension-test</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
         <dependency>
             <groupId>io.quarkiverse.easy-retrofit-client</groupId>

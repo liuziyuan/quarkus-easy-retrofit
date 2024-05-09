@@ -1,6 +1,5 @@
 package io.quarkiverse.easy.retrofit.client.deployment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.github.liuziyuan.retrofit.core.RetrofitInterceptorExtension;
@@ -8,24 +7,13 @@ import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class RetrofitInterceptorExtensionBuildItem extends SimpleBuildItem {
 
-    private final List<String> retrofitInterceptorExtensionClassNames;
+    private final List<RetrofitInterceptorExtension> retrofitInterceptorExtensions;
 
-    public RetrofitInterceptorExtensionBuildItem(List<String> retrofitInterceptorExtensionClassNames) {
-        this.retrofitInterceptorExtensionClassNames = retrofitInterceptorExtensionClassNames;
+    public RetrofitInterceptorExtensionBuildItem(List<RetrofitInterceptorExtension> retrofitInterceptorExtensions) {
+        this.retrofitInterceptorExtensions = retrofitInterceptorExtensions;
     }
 
-    public List<Class<? extends RetrofitInterceptorExtension>> getRetrofitInterceptorExtensionClasses()
-            throws ClassNotFoundException {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        List<Class<? extends RetrofitInterceptorExtension>> retrofitInterceptorExtensionClasses = new ArrayList<>();
-        for (String className : retrofitInterceptorExtensionClassNames) {
-            Class<?> clazz = cl.loadClass(className);
-            retrofitInterceptorExtensionClasses.add((Class<? extends RetrofitInterceptorExtension>) clazz);
-        }
-        return retrofitInterceptorExtensionClasses;
-    }
-
-    public List<String> getRetrofitInterceptorExtensionClassNames() {
-        return retrofitInterceptorExtensionClassNames;
+    public List<RetrofitInterceptorExtension> getRetrofitInterceptorExtensions() {
+        return retrofitInterceptorExtensions;
     }
 }

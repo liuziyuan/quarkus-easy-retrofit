@@ -11,11 +11,10 @@ import org.apache.commons.lang3.StringUtils;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceScanner;
 
 public class RetrofitAnnotationBeanRegister {
-    private RetrofitResourceScanner scanner;
 
     public Set<Class<?>> scanRetrofitResource(EnableRetrofitBean enableRetrofit) {
         // scan RetrofitResource
-        scanner = new RetrofitResourceScanner();
+        RetrofitResourceScanner scanner = new RetrofitResourceScanner();
         List<String> basePackages = getBasePackages(enableRetrofit);
         return scanner.doScan(basePackages.toArray(new String[0]));
     }
