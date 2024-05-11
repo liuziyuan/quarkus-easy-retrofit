@@ -94,6 +94,7 @@ public final class RetrofitClientProcessor {
                     .runtimeValue(recorder.getRetrofitResourceContextInstance(retrofitResourceContext));
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
 
+            producer.produce(new RetrofitResourceContextBuildItem(retrofitResourceContext));
         }
     }
 
