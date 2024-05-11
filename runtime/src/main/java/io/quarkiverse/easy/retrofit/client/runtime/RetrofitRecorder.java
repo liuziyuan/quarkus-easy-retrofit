@@ -21,7 +21,4 @@ public class RetrofitRecorder {
         return new RuntimeValue<>(retrofitBuilder.build());
     }
 
-    public RuntimeValue<MyTest> getMyTestInstance(MyTest myTest) {
-        return new RuntimeValue<>(myTest);
-    }
 }

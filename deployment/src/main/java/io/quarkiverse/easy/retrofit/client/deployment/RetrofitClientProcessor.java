@@ -5,7 +5,7 @@ import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.util.*;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
@@ -71,12 +71,14 @@ public final class RetrofitClientProcessor {
                     .scanRetrofitExtension(enableRetrofitBean);
             RetrofitBuilderExtension retrofitBuilderExtension = retrofitExtensionRegister
                     .getRetrofitBuilderExtension(retrofitExtension.getRetrofitBuilderClasses());
+            // get interceptorExtensions
             List<RetrofitInterceptorExtension> retrofitInterceptorExtensions = retrofitExtensionRegister
                     .getRetrofitInterceptorExtensions(retrofitExtension.getRetrofitInterceptorClasses());
-            // create RetrofitResourceContext
+            //get globalConfig(BuilderExtension)
             RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
             RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
                     retrofitBuilderExtension);
+            // create RetrofitResourceContext
             Env env = new QuarkusEnv();
             RetrofitResourceContextBuilder contextBuilder = new RetrofitResourceContextBuilder(env);
             RetrofitResourceContext retrofitResourceContext = contextBuilder.buildContextInstance(
@@ -85,15 +87,9 @@ public final class RetrofitClientProcessor {
                     globalConfig,
                     retrofitInterceptorExtensions);
 
-            //            producer.produce(new RetrofitResourceContextBuildItem(retrofitResourceContext));
-            //            RetrofitContext retrofitContext = new RetrofitContext();
-            //            retrofitContext.setBasePackages(retrofitResourceContext.getBasePackages());
-            //            retrofitContext.setRetrofitBuilderExtensionClazz(retrofitResourceContext.getRetrofitBuilderExtensionClazz());
-            //            retrofitContext.setInterceptorExtensionsClasses(retrofitResourceContext.getInterceptorExtensionsClasses());
-            //            retrofitContext.setRetrofitApiServices(retrofitResourceContext.getRetrofitApiServices());
             SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
                     .configure(RetrofitResourceContext.class)
-                    .scope(ApplicationScoped.class)
+                    .scope(Singleton.class)
                     .unremovable()
                     .runtimeValue(recorder.getRetrofitResourceContextInstance(retrofitResourceContext));
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
