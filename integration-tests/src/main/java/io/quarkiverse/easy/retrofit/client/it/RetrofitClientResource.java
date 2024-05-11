@@ -32,14 +32,17 @@ public class RetrofitClientResource {
     RetrofitResourceContext retrofitResourceContext;
     //    @Inject
     //    MyTest myTest;
+    //
+    //    @Inject
+    //    RetrofitContext retrofitContext;
 
     @GET
     public String hello() {
         //        String name = myTest.getName();
         //        System.out.println(name);
         String[] basePackages = retrofitResourceContext.getBasePackages();
+        //        String[] basePackages = retrofitContext.getBasePackages();
         System.out.println(String.join(",", basePackages));
-        //        System.out.println(retrofitContext.getBasePackages());
         return "Hello retrofit-client";
     }
 }

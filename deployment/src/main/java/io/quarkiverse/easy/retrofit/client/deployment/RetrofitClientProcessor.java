@@ -5,12 +5,15 @@ import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.util.*;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
 import io.github.liuziyuan.retrofit.core.*;
+import io.github.liuziyuan.retrofit.core.resource.RetrofitClientBean;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
@@ -19,6 +22,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import retrofit2.Retrofit;
 
 public final class RetrofitClientProcessor {
 
@@ -95,6 +99,12 @@ public final class RetrofitClientProcessor {
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
 
             producer.produce(new RetrofitResourceContextBuildItem(retrofitResourceContext));
+            //            SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
+            //                    .configure(RetrofitContext.class)
+            //                    .scope(Singleton.class)
+            //                    .unremovable()
+            //                    .runtimeValue(recorder.getRetrofitContextInstance(retrofitResourceContext));
+            //            syntheticBeanBuildItemBuildProducer.produce(configurator.done());
         }
     }
 
@@ -106,14 +116,15 @@ public final class RetrofitClientProcessor {
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
         if (retrofitResourceContextBuildItem != null) {
             RetrofitResourceContext context = retrofitResourceContextBuildItem.getContext();
-            //            for (RetrofitClientBean clientBean : context.getRetrofitClients()) {
-            //                SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
-            //                        .configure(Retrofit.class)
-            //                        .scope(ApplicationScoped.class)
-            //                        .unremovable().runtimeValue(recorder.getRetrofitInstance(clientBean, context))
-            //                        .addQualifier(NamedQualifier.named(""));
-            //                syntheticBeanBuildItemBuildProducer.produce(configurator.done());
-            //            }
+            for (RetrofitClientBean clientBean : context.getRetrofitClients()) {
+                SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
+                        .configure(Retrofit.class)
+                        .setRuntimeInit()
+                        .scope(ApplicationScoped.class)
+                        .unremovable().runtimeValue(recorder.getRetrofitInstance(clientBean, context))
+                        .addQualifier().annotation(Named.class).addValue("value", clientBean.getRetrofitInstanceName()).done();
+                syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+            }
         }
     }
 
