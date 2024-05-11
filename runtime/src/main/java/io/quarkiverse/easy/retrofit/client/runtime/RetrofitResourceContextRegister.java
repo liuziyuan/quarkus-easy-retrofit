@@ -9,7 +9,8 @@ public class RetrofitResourceContextRegister {
             RetrofitBuilderExtension retrofitBuilderExtension,
             List<RetrofitInterceptorExtension> retrofitInterceptorExtensions) {
         Env env = new QuarkusEnv();
-        return new RetrofitResourceContextBuilder(env).build(retrofitAnnotationBean.getBasePackages().toArray(new String[0]),
+        return new RetrofitResourceContextBuilder(env).buildContextInstance(
+                retrofitAnnotationBean.getBasePackages().toArray(new String[0]),
                 retrofitAnnotationBean.getRetrofitBuilderClassSet(),
                 retrofitBuilderExtension,
                 retrofitInterceptorExtensions);

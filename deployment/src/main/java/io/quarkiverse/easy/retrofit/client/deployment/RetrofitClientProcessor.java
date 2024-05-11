@@ -1,5 +1,6 @@
 package io.quarkiverse.easy.retrofit.client.deployment;
 
+import static io.quarkus.deployment.annotations.ExecutionTime.RUNTIME_INIT;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
 import java.util.*;
@@ -9,10 +10,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.jboss.jandex.*;
 import org.jboss.logging.Logger;
 
-import io.github.liuziyuan.retrofit.core.RetrofitBuilderExtension;
-import io.github.liuziyuan.retrofit.core.RetrofitInterceptorExtension;
-import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
-import io.github.liuziyuan.retrofit.core.RetrofitResourceScanner;
+import io.github.liuziyuan.retrofit.core.*;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
@@ -21,7 +19,6 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.runtime.RuntimeValue;
 
 public final class RetrofitClientProcessor {
 
@@ -80,39 +77,48 @@ public final class RetrofitClientProcessor {
             RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
             RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
                     retrofitBuilderExtension);
+            Env env = new QuarkusEnv();
+            RetrofitResourceContextBuilder contextBuilder = new RetrofitResourceContextBuilder(env);
+            RetrofitResourceContext retrofitResourceContext = contextBuilder.buildContextInstance(
+                    retrofitAnnotationBean.getBasePackages().toArray(new String[0]),
+                    retrofitAnnotationBean.getRetrofitBuilderClassSet(),
+                    globalConfig,
+                    retrofitInterceptorExtensions);
 
-            RetrofitResourceContextRegister retrofitResourceContextRegister = new RetrofitResourceContextRegister();
-            RetrofitResourceContext context = retrofitResourceContextRegister.getContext(retrofitAnnotationBean,
-                    globalConfig, retrofitInterceptorExtensions);
-            RuntimeValue<RetrofitResourceContext> runtimeValue = recorder.createRetrofitResourceContext(context);
+            //            producer.produce(new RetrofitResourceContextBuildItem(retrofitResourceContext));
+            //            RetrofitContext retrofitContext = new RetrofitContext();
+            //            retrofitContext.setBasePackages(retrofitResourceContext.getBasePackages());
+            //            retrofitContext.setRetrofitBuilderExtensionClazz(retrofitResourceContext.getRetrofitBuilderExtensionClazz());
+            //            retrofitContext.setInterceptorExtensionsClasses(retrofitResourceContext.getInterceptorExtensionsClasses());
+            //            retrofitContext.setRetrofitApiServices(retrofitResourceContext.getRetrofitApiServices());
             SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
                     .configure(RetrofitResourceContext.class)
                     .scope(ApplicationScoped.class)
                     .unremovable()
-                    .supplier(recorder.getRetrofitResourceContextSupplier(runtimeValue));
-
+                    .runtimeValue(recorder.getRetrofitResourceContextInstance(retrofitResourceContext));
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
 
         }
     }
 
-    //    @BuildStep
-    //    @Record(RUNTIME_INIT)
-    //    void registerRetrofitResource(
-    //            RetrofitRecorder recorder,
-    //            RetrofitResourceContextBuildItem retrofitResourceContextBuildItem,
-    //            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
-    //        if (retrofitResourceContextBuildItem != null) {
-    //            //            RetrofitResourceContext context = retrofitResourceContextBuildItem.getContext();
-    //            //            SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
-    //            //                    .configure(RetrofitResourceContext.class)
-    //            //                    .setRuntimeInit()
-    //            //                    .scope(ApplicationScoped.class)
-    //            //                    .unremovable()
-    //            //                    .runtimeValue(recorder.createRetrofitResourceContext(context));
-    //            //            syntheticBeanBuildItemBuildProducer.produce(configurator.done());
-    //        }
-    //    }
+    @BuildStep
+    @Record(RUNTIME_INIT)
+    void registerRetrofitResource(
+            RetrofitRecorder recorder,
+            RetrofitResourceContextBuildItem retrofitResourceContextBuildItem,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
+        if (retrofitResourceContextBuildItem != null) {
+            RetrofitResourceContext context = retrofitResourceContextBuildItem.getContext();
+            //            for (RetrofitClientBean clientBean : context.getRetrofitClients()) {
+            //                SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
+            //                        .configure(Retrofit.class)
+            //                        .scope(ApplicationScoped.class)
+            //                        .unremovable().runtimeValue(recorder.getRetrofitInstance(clientBean, context))
+            //                        .addQualifier(NamedQualifier.named(""));
+            //                syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+            //            }
+        }
+    }
 
     private Class<?>[] getBasePackageClasses(Type[] type) {
         Class<?>[] classes = new Class[type.length];
