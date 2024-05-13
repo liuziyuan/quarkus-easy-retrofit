@@ -16,12 +16,19 @@
  */
 package io.quarkiverse.easy.retrofit.client.it;
 
+import java.io.IOException;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
+import io.quarkiverse.easy.retrofit.client.it.api.BaseApi;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 
 @Path("/retrofit-client")
 @ApplicationScoped
@@ -30,6 +37,9 @@ public class RetrofitClientResource {
     //
     @Inject
     RetrofitResourceContext retrofitResourceContext;
+
+    @Inject
+    BaseApi baseApi;
     //    @Inject
     //    MyTest myTest;
     //
@@ -37,12 +47,14 @@ public class RetrofitClientResource {
     //    RetrofitContext retrofitContext;
 
     @GET
-    public String hello() {
+    public String hello() throws IOException {
+        ArcContainer container = Arc.container();
         //        String name = myTest.getName();
         //        System.out.println(name);
-        String[] basePackages = retrofitResourceContext.getBasePackages();
+        //        String[] basePackages = retrofitResourceContext.getBasePackages();
         //        String[] basePackages = retrofitContext.getBasePackages();
-        System.out.println(String.join(",", basePackages));
-        return "Hello retrofit-client";
+        //        System.out.println(String.join(",", basePackages));
+        Call<ResponseBody> hello = baseApi.hello();
+        return hello.execute().body().string();
     }
 }

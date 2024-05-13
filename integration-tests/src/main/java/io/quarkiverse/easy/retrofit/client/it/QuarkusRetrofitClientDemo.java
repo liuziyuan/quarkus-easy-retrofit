@@ -21,7 +21,8 @@ public class QuarkusRetrofitClientDemo {
         public int run(String... args) throws Exception {
             System.out.println("Do startup logic here");
             ArcContainer container = Arc.container();
-            InstanceHandle<RetrofitResourceContext> instance = container.instance(RetrofitResourceContext.class);
+            InstanceHandle<RetrofitResourceContext> retrofitResourceContextInstanceHandle = container
+                    .instance(RetrofitResourceContext.class);
             Quarkus.waitForExit();
             return 0;
         }
