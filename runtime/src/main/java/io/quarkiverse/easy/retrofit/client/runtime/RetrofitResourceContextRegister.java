@@ -1,0 +1,35 @@
+package io.quarkiverse.easy.retrofit.client.runtime;
+
+import java.util.List;
+
+import io.github.liuziyuan.retrofit.core.*;
+import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
+import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
+
+public class RetrofitResourceContextRegister {
+
+    public RetrofitResourceContext getRetrofitResourceContextInstance(RetrofitAnnotationBean retrofitAnnotationBean,
+            RetrofitBuilderGlobalConfigProperties globalConfigProperties) {
+        // get retrofitExtension
+        RetrofitExtensionRegister retrofitExtensionRegister = new RetrofitExtensionRegister();
+        RetrofitBuilderExtension retrofitBuilderExtension = retrofitExtensionRegister
+                .getRetrofitBuilderExtension(retrofitAnnotationBean.getRetrofitExtension().getRetrofitBuilderClasses());
+        // get interceptorExtensions
+        List<RetrofitInterceptorExtension> retrofitInterceptorExtensions = retrofitExtensionRegister
+                .getRetrofitInterceptorExtensions(
+                        retrofitAnnotationBean.getRetrofitExtension().getRetrofitInterceptorClasses());
+        //get globalConfig(BuilderExtension)
+        RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
+        RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
+                retrofitBuilderExtension);
+        // create RetrofitResourceContext
+        Env env = new QuarkusEnv();
+        RetrofitResourceContextBuilder contextBuilder = new RetrofitResourceContextBuilder(env);
+        RetrofitResourceContext retrofitResourceContext = contextBuilder.buildContextInstance(
+                retrofitAnnotationBean.getBasePackages().toArray(new String[0]),
+                retrofitAnnotationBean.getRetrofitBuilderClassSet(),
+                globalConfig,
+                retrofitInterceptorExtensions);
+        return retrofitResourceContext;
+    }
+}

@@ -9,6 +9,7 @@
     </parent>
     <artifactId>quarkus-retrofit-client-integration-tests</artifactId>
     <name>Quarkus Retrofit Client - Integration Tests</name>
+    <version>1.0.0</version>
 
     <properties>
         <skipITs>true</skipITs>
@@ -21,9 +22,16 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-reactive</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>io.liuziyuan.retrofit.quarkus.extension</groupId>
-            <artifactId>extension-test</artifactId>
+            <groupId>io.quarkiverse.easy-retrofit-extension-test</groupId>
+            <artifactId>quarkus-retrofit-extension-test</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkiverse.easy-retrofit-extension-test2</groupId>
+            <artifactId>quarkus-retrofit-extension-test2</artifactId>
             <version>1.0.0</version>
         </dependency>
 
@@ -32,11 +40,7 @@
             <artifactId>quarkus-retrofit-client</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.easy-retrofit-client</groupId>
-            <artifactId>quarkus-retrofit-client</artifactId>
-            <version>1.0.0</version>
-        </dependency>
+
         <dependency>
             <groupId>io.github.liuziyuan</groupId>
             <artifactId>retrofit-adapter-simple-body</artifactId>

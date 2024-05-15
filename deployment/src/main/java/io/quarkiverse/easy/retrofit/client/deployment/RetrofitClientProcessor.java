@@ -3,6 +3,7 @@ package io.quarkiverse.easy.retrofit.client.deployment;
 import static io.quarkus.deployment.annotations.ExecutionTime.RUNTIME_INIT;
 import static io.quarkus.deployment.annotations.ExecutionTime.STATIC_INIT;
 
+import java.io.IOException;
 import java.util.*;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,13 +17,13 @@ import io.github.liuziyuan.retrofit.core.*;
 import io.github.liuziyuan.retrofit.core.resource.RetrofitApiServiceBean;
 import io.github.liuziyuan.retrofit.core.resource.RetrofitClientBean;
 import io.quarkiverse.easy.retrofit.client.runtime.*;
-import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
 import io.quarkus.arc.deployment.*;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.runtime.RuntimeValue;
 import retrofit2.Retrofit;
 
@@ -32,10 +33,18 @@ public final class RetrofitClientProcessor {
     private static final String FEATURE = "retrofit-client";
 
     static DotName ENABLE_RETROFIT_ANNOTATION = DotName.createSimple(EnableRetrofit.class.getName());
+    static final String RETROFIT_EXTENSION_PROPERTIES = "META-INF/retrofit-extension.properties";
+    private static final String RETROFIT_EXTENSION_CLASS_NAME = "retrofit.extension.name";
 
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
+    }
+
+    @BuildStep
+    void reflectiveClasses(BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
+        reflectiveClass.produce(
+                ReflectiveClassBuildItem.builder(RetrofitResourceContext.class).methods(true).fields(true).build());
     }
 
     @BuildStep
@@ -44,7 +53,7 @@ public final class RetrofitClientProcessor {
             BeanArchiveIndexBuildItem beanArchiveIndex,
             RetrofitBuilderGlobalConfigProperties globalConfigProperties,
             BuildProducer<RetrofitResourceContextBuildItem> producer,
-            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) throws IOException {
         IndexView indexView = beanArchiveIndex.getIndex();
         Collection<AnnotationInstance> annotations = indexView.getAnnotations(ENABLE_RETROFIT_ANNOTATION);
         if (annotations.size() > 1) {
@@ -52,7 +61,6 @@ public final class RetrofitClientProcessor {
         }
         if (annotations.size() == 1) {
             AnnotationInstance annotationInstance = annotations.iterator().next();
-
             EnableRetrofitBean enableRetrofitBean = new EnableRetrofitBean();
             enableRetrofitBean.setValue(annotationInstance.value("value") == null ? new String[0]
                     : annotationInstance.value("value").asStringArray());
@@ -61,52 +69,21 @@ public final class RetrofitClientProcessor {
             enableRetrofitBean.setBasePackageClasses(
                     getBasePackageClasses(annotationInstance.value("basePackageClasses") == null ? new Type[0]
                             : annotationInstance.value("basePackageClasses").asClassArray()));
-            enableRetrofitBean.setExtensionPackages(annotationInstance.value("extensionPackages") == null ? new String[0]
-                    : annotationInstance.value("extensionPackages").asStringArray());
-            enableRetrofitBean.setExtensionPackageClasses(
-                    getBasePackageClasses(annotationInstance.value("extensionPackageClasses") == null ? new Type[0]
-                            : annotationInstance.value("extensionPackageClasses").asClassArray()));
-            // get retrofitAnnotationBean
             RetrofitAnnotationBeanRegister retrofitAnnotationBeanRegister = new RetrofitAnnotationBeanRegister();
-            Set<Class<?>> retrofitResource = retrofitAnnotationBeanRegister.scanRetrofitResource(enableRetrofitBean);
-            List<String> basePackages = retrofitAnnotationBeanRegister.getBasePackages(enableRetrofitBean);
-            RetrofitAnnotationBean retrofitAnnotationBean = new RetrofitAnnotationBean(basePackages, retrofitResource);
-            // get retrofitExtension
-            RetrofitExtensionRegister retrofitExtensionRegister = new RetrofitExtensionRegister();
-            RetrofitResourceScanner.RetrofitExtension retrofitExtension = retrofitExtensionRegister
-                    .scanRetrofitExtension(enableRetrofitBean);
-            RetrofitBuilderExtension retrofitBuilderExtension = retrofitExtensionRegister
-                    .getRetrofitBuilderExtension(retrofitExtension.getRetrofitBuilderClasses());
-            // get interceptorExtensions
-            List<RetrofitInterceptorExtension> retrofitInterceptorExtensions = retrofitExtensionRegister
-                    .getRetrofitInterceptorExtensions(retrofitExtension.getRetrofitInterceptorClasses());
-            //get globalConfig(BuilderExtension)
-            RetrofitBuilderExtensionRegister retrofitBuilderExtensionRegister = new RetrofitBuilderExtensionRegister();
-            RetrofitBuilderGlobalConfig globalConfig = retrofitBuilderExtensionRegister.getGlobalConfig(globalConfigProperties,
-                    retrofitBuilderExtension);
-            // create RetrofitResourceContext
-            Env env = new QuarkusEnv();
-            RetrofitResourceContextBuilder contextBuilder = new RetrofitResourceContextBuilder(env);
-            RetrofitResourceContext retrofitResourceContext = contextBuilder.buildContextInstance(
-                    retrofitAnnotationBean.getBasePackages().toArray(new String[0]),
-                    retrofitAnnotationBean.getRetrofitBuilderClassSet(),
-                    globalConfig,
-                    retrofitInterceptorExtensions);
+            RetrofitAnnotationBean retrofitAnnotationBean = retrofitAnnotationBeanRegister.build(enableRetrofitBean);
+
+            RetrofitResourceContextRegister register = new RetrofitResourceContextRegister();
+            RetrofitResourceContext retrofitResourceContextInstance = register
+                    .getRetrofitResourceContextInstance(retrofitAnnotationBean, globalConfigProperties);
 
             SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
                     .configure(RetrofitResourceContext.class)
                     .scope(Singleton.class)
                     .unremovable()
-                    .runtimeValue(recorder.getRetrofitResourceContextInstance(retrofitResourceContext));
+                    .runtimeValue(recorder.getRetrofitResourceContextInstance(retrofitAnnotationBean, globalConfigProperties));
             syntheticBeanBuildItemBuildProducer.produce(configurator.done());
 
-            producer.produce(new RetrofitResourceContextBuildItem(retrofitResourceContext));
-            //            SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
-            //                    .configure(RetrofitContext.class)
-            //                    .scope(Singleton.class)
-            //                    .unremovable()
-            //                    .runtimeValue(recorder.getRetrofitContextInstance(retrofitResourceContext));
-            //            syntheticBeanBuildItemBuildProducer.produce(configurator.done());
+            producer.produce(new RetrofitResourceContextBuildItem(retrofitResourceContextInstance));
         }
     }
 
@@ -118,18 +95,10 @@ public final class RetrofitClientProcessor {
             BuildProducer<SyntheticBeanBuildItem> syntheticBeanBuildItemBuildProducer) {
         if (retrofitResourceContextBuildItem != null) {
             RetrofitResourceContext context = retrofitResourceContextBuildItem.getContext();
+
             List<RetrofitClientBean> retrofitClientBeanList = context.getRetrofitClients();
             for (RetrofitClientBean clientBean : retrofitClientBeanList) {
-                //                SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
-                //                        .configure(Retrofit.class)
-                //                        .setRuntimeInit()
-                //                        .scope(ApplicationScoped.class)
-                //                        .unremovable().runtimeValue(recorder.getRetrofitInstance(clientBean, context))
-                //                        .addQualifier().annotation(Named.class).addValue("value", clientBean.getRetrofitInstanceName()).done();
-                //                syntheticBeanBuildItemBuildProducer.produce(configurator.done());
-            }
-            for (RetrofitClientBean clientBean : retrofitClientBeanList) {
-                RuntimeValue<Retrofit> retrofitInstance = recorder.getRetrofitInstance(clientBean, context);
+                RuntimeValue<Retrofit> retrofitInstance = recorder.getRetrofitInstance(clientBean.getRetrofitInstanceName());
                 for (RetrofitApiServiceBean serviceBean : clientBean.getRetrofitApiServiceBeans()) {
                     SyntheticBeanBuildItem.ExtendedBeanConfigurator configurator = SyntheticBeanBuildItem
                             .configure(serviceBean.getSelfClazz())
@@ -137,12 +106,16 @@ public final class RetrofitClientProcessor {
                             .scope(ApplicationScoped.class)
                             .unremovable()
                             .runtimeValue(
-                                    recorder.getRetrofitApiInstance(serviceBean.getSelfClazz(), serviceBean, retrofitInstance))
+                                    recorder.getRetrofitApiInstance(serviceBean.getSelfClazz(), retrofitInstance))
                             .addQualifier().annotation(Named.class).addValue("value", serviceBean.getSelfClazz().getName())
                             .done();
                     syntheticBeanBuildItemBuildProducer.produce(configurator.done());
                 }
             }
+
+            RetrofitLogoVersion retrofitLogoVersion = new RetrofitLogoVersion(context);
+            retrofitLogoVersion.print();
+
         }
     }
 

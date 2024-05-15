@@ -1,5 +1,6 @@
 package io.quarkiverse.easy.retrofit.client.runtime;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,10 +12,31 @@ import org.apache.commons.lang3.StringUtils;
 import io.github.liuziyuan.retrofit.core.RetrofitResourceScanner;
 
 public class RetrofitAnnotationBeanRegister {
+    private RetrofitResourceScanner scanner;
+
+    public RetrofitAnnotationBeanRegister() {
+        scanner = new RetrofitResourceScanner();
+    }
+
+    public RetrofitAnnotationBean build(EnableRetrofitBean enableRetrofit) {
+        RetrofitResourceScanner scanner = new RetrofitResourceScanner();
+        List<String> basePackages = getBasePackages(enableRetrofit);
+        Set<Class<?>> retrofitBuilderClassSet = scanner.doScan(basePackages.toArray(new String[0]));
+
+        //scan adn set Retrofit extension packages
+        QuarkusRetrofitExtensionScanner extensionScanner = new QuarkusRetrofitExtensionScanner();
+        try {
+            Set<String> extensionPackages = extensionScanner.scan();
+            RetrofitResourceScanner.RetrofitExtension retrofitExtension = scanner
+                    .doScanExtension(extensionPackages.toArray(new String[0]));
+            return new RetrofitAnnotationBean(basePackages, retrofitBuilderClassSet, retrofitExtension);
+        } catch (IOException ignored) {
+        }
+        return null;
+    }
 
     public Set<Class<?>> scanRetrofitResource(EnableRetrofitBean enableRetrofit) {
         // scan RetrofitResource
-        RetrofitResourceScanner scanner = new RetrofitResourceScanner();
         List<String> basePackages = getBasePackages(enableRetrofit);
         return scanner.doScan(basePackages.toArray(new String[0]));
     }

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.github.liuziyuan.retrofit.core.CDIBeanManager;
+import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
 import io.github.liuziyuan.retrofit.core.exception.RetrofitExtensionException;
 import io.github.liuziyuan.retrofit.core.proxy.BaseExceptionDelegate;
 import io.github.liuziyuan.retrofit.core.proxy.RetrofitServiceProxy;
@@ -15,14 +16,15 @@ import retrofit2.Retrofit;
 
 public class RetrofitApiServiceProxyRegister<T> {
     private final Class<T> interfaceType;
-    private CDIBeanManager cdiBeanManager;
+    private final CDIBeanManager cdiBeanManager;
     private final RetrofitApiServiceBean retrofitApiServiceBean;
-    private RuntimeValue<Retrofit> retrofitRuntimeValue;
+    private final RuntimeValue<Retrofit> retrofitRuntimeValue;
 
-    public RetrofitApiServiceProxyRegister(Class<T> interfaceType, RetrofitApiServiceBean retrofitApiServiceBean,
+    public RetrofitApiServiceProxyRegister(Class<T> interfaceType,
             RuntimeValue<Retrofit> retrofitRuntimeValue, CDIBeanManager cdiBeanManager) {
         this.interfaceType = interfaceType;
-        this.retrofitApiServiceBean = retrofitApiServiceBean;
+        this.retrofitApiServiceBean = cdiBeanManager.getBean(RetrofitResourceContext.class)
+                .getRetrofitApiServiceBean(interfaceType);
         this.cdiBeanManager = cdiBeanManager;
         this.retrofitRuntimeValue = retrofitRuntimeValue;
     }
