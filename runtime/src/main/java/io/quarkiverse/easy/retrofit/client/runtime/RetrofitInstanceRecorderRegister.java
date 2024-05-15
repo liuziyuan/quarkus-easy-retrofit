@@ -5,7 +5,7 @@ import io.github.liuziyuan.retrofit.core.generator.RetrofitBuilderGenerator;
 import io.github.liuziyuan.retrofit.core.resource.RetrofitClientBean;
 import retrofit2.Retrofit;
 
-public class RetrofitInstanceRegister {
+public class RetrofitInstanceRecorderRegister {
 
     public Retrofit.Builder getRetrofitBuilderInstance(QuarkusCDIBeanManager cdiBeanManager, String clientBeanInstanceName) {
         RetrofitResourceContext context = cdiBeanManager.getBean(RetrofitResourceContext.class);

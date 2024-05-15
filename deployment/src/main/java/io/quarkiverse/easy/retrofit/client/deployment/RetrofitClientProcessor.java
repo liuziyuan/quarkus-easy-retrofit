@@ -72,7 +72,7 @@ public final class RetrofitClientProcessor {
             RetrofitAnnotationBeanRegister retrofitAnnotationBeanRegister = new RetrofitAnnotationBeanRegister();
             RetrofitAnnotationBean retrofitAnnotationBean = retrofitAnnotationBeanRegister.build(enableRetrofitBean);
 
-            RetrofitResourceContextRegister register = new RetrofitResourceContextRegister();
+            RetrofitResourceContextRecorderRegister register = new RetrofitResourceContextRecorderRegister();
             RetrofitResourceContext retrofitResourceContextInstance = register
                     .getRetrofitResourceContextInstance(retrofitAnnotationBean, globalConfigProperties);
 

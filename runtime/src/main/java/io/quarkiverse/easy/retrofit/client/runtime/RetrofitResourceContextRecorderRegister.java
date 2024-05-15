@@ -6,7 +6,7 @@ import io.github.liuziyuan.retrofit.core.*;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfig;
 import io.quarkiverse.easy.retrofit.client.runtime.global.RetrofitBuilderGlobalConfigProperties;
 
-public class RetrofitResourceContextRegister {
+public class RetrofitResourceContextRecorderRegister {
 
     public RetrofitResourceContext getRetrofitResourceContextInstance(RetrofitAnnotationBean retrofitAnnotationBean,
             RetrofitBuilderGlobalConfigProperties globalConfigProperties) {

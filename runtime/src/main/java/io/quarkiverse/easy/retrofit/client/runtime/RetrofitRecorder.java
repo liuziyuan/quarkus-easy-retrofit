@@ -12,12 +12,12 @@ public class RetrofitRecorder {
 
     public RuntimeValue<RetrofitResourceContext> getRetrofitResourceContextInstance(
             RetrofitAnnotationBean retrofitAnnotationBean, RetrofitBuilderGlobalConfigProperties globalConfigProperties) {
-        RetrofitResourceContextRegister register = new RetrofitResourceContextRegister();
+        RetrofitResourceContextRecorderRegister register = new RetrofitResourceContextRecorderRegister();
         return new RuntimeValue<>(register.getRetrofitResourceContextInstance(retrofitAnnotationBean, globalConfigProperties));
     }
 
     public RuntimeValue<Retrofit> getRetrofitInstance(String clientBeanInstanceName) {
-        RetrofitInstanceRegister retrofitInstanceRegister = new RetrofitInstanceRegister();
+        RetrofitInstanceRecorderRegister retrofitInstanceRegister = new RetrofitInstanceRecorderRegister();
         Retrofit.Builder retrofitBuilderInstance = retrofitInstanceRegister
                 .getRetrofitBuilderInstance(new QuarkusCDIBeanManager(Arc.container()), clientBeanInstanceName);
         return new RuntimeValue<>(retrofitBuilderInstance.build());
@@ -25,7 +25,8 @@ public class RetrofitRecorder {
 
     public RuntimeValue<?> getRetrofitApiInstance(Class<?> interfaceType, RuntimeValue<Retrofit> retrofitRuntimeValue) {
 
-        RetrofitApiServiceProxyRegister<?> retrofitApiServiceProxyBuilder = new RetrofitApiServiceProxyRegister<>(interfaceType,
+        RetrofitApiServiceProxyRecorderRegister<?> retrofitApiServiceProxyBuilder = new RetrofitApiServiceProxyRecorderRegister<>(
+                interfaceType,
                 retrofitRuntimeValue, new QuarkusCDIBeanManager(Arc.container()));
 
         return new RuntimeValue<>(retrofitApiServiceProxyBuilder.build());

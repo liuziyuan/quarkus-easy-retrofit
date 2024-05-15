@@ -14,13 +14,13 @@ import io.github.liuziyuan.retrofit.core.resource.RetrofitApiServiceBean;
 import io.quarkus.runtime.RuntimeValue;
 import retrofit2.Retrofit;
 
-public class RetrofitApiServiceProxyRegister<T> {
+public class RetrofitApiServiceProxyRecorderRegister<T> {
     private final Class<T> interfaceType;
     private final CDIBeanManager cdiBeanManager;
     private final RetrofitApiServiceBean retrofitApiServiceBean;
     private final RuntimeValue<Retrofit> retrofitRuntimeValue;
 
-    public RetrofitApiServiceProxyRegister(Class<T> interfaceType,
+    public RetrofitApiServiceProxyRecorderRegister(Class<T> interfaceType,
             RuntimeValue<Retrofit> retrofitRuntimeValue, CDIBeanManager cdiBeanManager) {
         this.interfaceType = interfaceType;
         this.retrofitApiServiceBean = cdiBeanManager.getBean(RetrofitResourceContext.class)
