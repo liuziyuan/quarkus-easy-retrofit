@@ -17,7 +17,6 @@
 package io.quarkiverse.easy.retrofit.client.it;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -25,8 +24,13 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
 import io.github.liuziyuan.retrofit.core.RetrofitResourceContext;
+import io.quarkiverse.easy.retrofit.client.it.api.BaseApi;
+import io.quarkiverse.easy.retrofit.client.it.api.BaseApi2;
+import io.quarkiverse.easy.retrofit.client.it.api.BaseApi3;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.ArcContainer;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 
 @Path("/retrofit-client")
 @ApplicationScoped
@@ -36,14 +40,14 @@ public class RetrofitClientResource {
     @Inject
     RetrofitResourceContext retrofitResourceContext;
 
-    //    @Inject
-    //    BaseApi baseApi;
-    //
-    //    @Inject
-    //    BaseApi2 baseApi2;
-    //
-    //    @Inject
-    //    BaseApi3 baseApi3;
+    @Inject
+    BaseApi baseApi;
+
+    @Inject
+    BaseApi2 baseApi2;
+
+    @Inject
+    BaseApi3 baseApi3;
     //    @Inject
     //    MyTest myTest;
     //
@@ -53,16 +57,16 @@ public class RetrofitClientResource {
     @GET
     public String hello() throws IOException {
         ArcContainer container = Arc.container();
-        retrofitResourceContext.getBasePackages();
+        //        retrofitResourceContext.getBasePackages();
         //        String name = myTest.getName();retrofitResourceContext = {RetrofitResourceContext@9776}
         //        System.out.println(name);
         //        String[] basePackages = retrofitResourceContext.getBasePackages();
         //        String[] basePackages = retrofitContext.getBasePackages();
         //        System.out.println(String.join(",", basePackages));
-        //        Call<ResponseBody> hello = baseApi.hello();
+        Call<ResponseBody> hello = baseApi.hello();
         //        Call<ResponseBody> hello2 = baseApi2.hello();
         //        Call<ResponseBody> hello3 = baseApi3.hello();
-        //        return hello.execute().body().string();
-        return Arrays.toString(retrofitResourceContext.getBasePackages());
+        return hello.execute().body().string();
+        //        return Arrays.toString(retrofitResourceContext.getBasePackages());
     }
 }
