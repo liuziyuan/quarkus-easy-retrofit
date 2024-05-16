@@ -29,7 +29,7 @@ public class RetrofitResourceContextRecorderRegister {
                 retrofitAnnotationBean.getBasePackages().toArray(new String[0]),
                 retrofitAnnotationBean.getRetrofitBuilderClassSet(),
                 globalConfig,
-                retrofitInterceptorExtensions);
+                retrofitInterceptorExtensions, new QuarkusEnv());
         return retrofitResourceContext;
     }
 }

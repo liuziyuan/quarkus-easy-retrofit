@@ -8,7 +8,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 @RetrofitBuilder(baseUrl = "${app.url}")
-@RetrofitInterceptor(handler = TestInterceptor.class)
+//@RetrofitInterceptor(handler = TestInterceptor.class)
 public interface BaseApi {
 
     @GET("api/hello")

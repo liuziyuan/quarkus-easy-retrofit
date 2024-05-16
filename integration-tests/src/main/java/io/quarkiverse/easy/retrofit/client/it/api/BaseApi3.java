@@ -8,8 +8,8 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 @RetrofitBuilder(baseUrl = "http://localhost:8091")
-@Test
-@Test2
+//@Test
+//@Test2
 public interface BaseApi3 {
 
     @GET("api/hello")
