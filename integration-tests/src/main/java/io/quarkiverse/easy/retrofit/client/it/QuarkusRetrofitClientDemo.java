@@ -9,7 +9,7 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 
-@EnableRetrofit(value = "io.quarkiverse.easy.retrofit.client.it.api", extensionPackages = "io.quarkiverse.easy.retrofit.client.it.extension")
+@EnableRetrofit(value = "io.quarkiverse.easy.retrofit.client.it.api")
 @QuarkusMain
 public class QuarkusRetrofitClientDemo {
     public static void main(String[] args) {

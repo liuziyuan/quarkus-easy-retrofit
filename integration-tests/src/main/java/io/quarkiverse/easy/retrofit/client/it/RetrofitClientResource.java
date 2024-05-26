@@ -17,6 +17,7 @@
 package io.quarkiverse.easy.retrofit.client.it;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -68,5 +69,12 @@ public class RetrofitClientResource {
         //        Call<ResponseBody> hello3 = baseApi3.hello();
         return hello.execute().body().string();
         //        return Arrays.toString(retrofitResourceContext.getBasePackages());
+    }
+
+    @GET
+    @Path("/helloBean")
+    public String helloBean() throws IOException, ExecutionException, InterruptedException {
+        HelloBean helloBean = baseApi.helloBean2();
+        return helloBean.getMessage();
     }
 }
